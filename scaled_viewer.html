@@ -163,7 +163,19 @@
             
             const panel = document.createElement('div');
             panel.className = 'render-panel';
-            panel.innerHTML = '<h3>CDC 6600 Display Test Pattern - Canvas Scale 1 (512×512 pixels)</h3>';
+            panel.innerHTML = `
+                <h3>CDC 6600 Display Test Pattern - Canvas Scale 1 (512×512 pixels)</h3>
+                <p style="font-size: 12px; color: #666; margin: -10px 0 15px 0;">
+                    Full Parameter Set: 
+                    <strong>C:1-4</strong> • 
+                    <strong>R:1</strong> • 
+                    <strong>D:1</strong> • 
+                    <strong>B:8</strong> • 
+                    <strong>A:0</strong>
+                    &nbsp;&nbsp;|&nbsp;&nbsp;
+                    <em>Green phosphor on black (P31 emulation)</em>
+                </p>
+            `;
             
             // Create 512x512 test canvas with all characters
             const testCanvas = document.createElement('canvas');
@@ -347,7 +359,17 @@
             
             // Second row: CDC Scaled Bitmap Examples with 8× Magnification
             const individualExamples = document.createElement('div');
-            individualExamples.innerHTML = '<h4>CDC Character Scale Examples - Individual Character with 8× Magnification</h4>';
+            individualExamples.innerHTML = `
+                <h4>CDC Character Scale Examples - Individual Character with 8× Magnification</h4>
+                <p style="font-size: 12px; color: #666; margin: 5px 0 10px 0;">
+                    Current Parameters: 
+                    <strong>Character Scale: 1/2/4</strong> • 
+                    <strong>Canvas Scale: 1 (512px)</strong> • 
+                    <strong>Device Scale: 1 (standard)</strong> • 
+                    <strong>Bit Depth: 1 (monochrome)</strong> • 
+                    <strong>Artifact Level: 0 (none)</strong>
+                </p>
+            `;
             individualExamples.style.marginTop = '20px';
             
             const characterScales = [1, 2, 4];  // CDC native character scales
