@@ -299,7 +299,7 @@
         function loadDocumentation() {
             const content = document.getElementById('content');
             
-            fetch('dd60.md')
+            fetch('docs/dd60.md')
                 .then(response => {
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
@@ -343,7 +343,7 @@
                         <div class="error">
                             <h3>Documentation Unavailable</h3>
                             <p><strong>Error:</strong> ${error.message}</p>
-                            <p>Could not load <code>dd60.md</code> from the server.</p>
+                            <p>Could not load <code>docs/dd60.md</code> from the server.</p>
                             <p style="font-size: 0.9em; margin-top: 20px;">
                                 This may occur when viewing the file directly from the filesystem 
                                 instead of through a web server due to CORS restrictions.
