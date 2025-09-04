@@ -96,9 +96,17 @@
     </style>
 </head>
 <body>
-    <h1>DD60 Character Visualization - Multiple Scales & Techniques</h1>
+    <h1>DD60 Character Visualization - Character Scales & Techniques</h1>
     <div style="margin-bottom: 15px;">
         <a href="index.html" style="display: inline-block; padding: 8px 16px; background: #0066cc; color: white; text-decoration: none; border-radius: 4px; font-size: 14px;">← Back to Main Menu</a>
+    </div>
+    
+    <!-- Three-Level Scaling System Description -->
+    <div style="background: #f0f8ff; padding: 15px; margin: 20px 0; border-left: 4px solid #0066cc;">
+        <h3 style="margin-top: 0;">DD60 Three-Level Scaling System</h3>
+        <p><strong>1. Character Scale (CDC Native):</strong> Hardware-authentic CDC 6602 character sizing - 1× (7×7px), 2× (14×14px), 4× (28×28px). Line width remains constant.</p>
+        <p><strong>2. Canvas Scale (Display Resolution):</strong> Logical canvas size - 1 (512px), 2 (1024px), 4 (2048px), 8 (4096px). Currently fixed at Canvas Scale 1.</p>
+        <p style="margin-bottom: 0;"><strong>3. Device Scale (Future):</strong> Device pixel ratio for Retina/HiDPI displays. Not yet implemented.</p>
     </div>
     
     <div id="cdcTestPattern" style="margin: 20px 0;">
@@ -149,7 +157,7 @@
             
             const panel = document.createElement('div');
             panel.className = 'render-panel';
-            panel.innerHTML = '<h3>CDC 6600 Display Test Pattern - 512×512 pixels</h3>';
+            panel.innerHTML = '<h3>CDC 6600 Display Test Pattern - Canvas Scale 1 (512×512 pixels)</h3>';
             
             // Create 512x512 test canvas with all characters
             const testCanvas = document.createElement('canvas');
@@ -166,12 +174,12 @@
             const charOrder = '0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/()=,.';
             const availableChars = charOrder.split('').filter(c => tripletRom[c]);
             
-            // Layout calculations for 512x512 canvas
-            // 1x: 10px per char = 50 chars/row, need ~46 chars total
-            // 2x: 20px per char = 25 chars/row 
-            // 4x: 40px per char = 12 chars/row
+            // Layout calculations for Canvas Scale 1 (512x512)
+            // Character Scale 1: 10px per char = 50 chars/row, need ~46 chars total
+            // Character Scale 2: 20px per char = 25 chars/row 
+            // Character Scale 4: 40px per char = 12 chars/row
             
-            // Draw ALL 1x scale characters in top section
+            // Draw ALL Character Scale 1 characters in top section
             ctx.save();
             ctx.translate(10, 15);
             let x = 0, y = 0;
@@ -192,7 +200,7 @@
             });
             ctx.restore();
             
-            // Draw ALL 2x scale characters in middle section
+            // Draw ALL Character Scale 2 characters in middle section
             ctx.save();
             ctx.translate(10, 45);
             x = 0; y = 0;
@@ -214,7 +222,7 @@
             });
             ctx.restore();
             
-            // Draw ALL 4x scale characters in bottom section
+            // Draw ALL Character Scale 4 characters in bottom section
             ctx.save();
             ctx.translate(10, 295);
             x = 0; y = 0;
@@ -239,9 +247,9 @@
             // Add labels
             ctx.fillStyle = '#00ff00';
             ctx.font = '10px monospace';
-            ctx.fillText('1× (7×7 pixels) - All Characters', 10, 10);
-            ctx.fillText('2× (14×14 pixels) - All Characters', 10, 40);
-            ctx.fillText('4× (28×28 pixels) - All Characters', 10, 290);
+            ctx.fillText('Character Scale 1 (7×7 pixels) - All Characters', 10, 10);
+            ctx.fillText('Character Scale 2 (14×14 pixels) - All Characters', 10, 40);
+            ctx.fillText('Character Scale 4 (28×28 pixels) - All Characters', 10, 290);
             
             const wrapper = document.createElement('div');
             wrapper.className = 'canvas-wrapper';
@@ -333,10 +341,10 @@
             
             // Second row: CDC Scaled Bitmap Examples with 8× Magnification
             const individualExamples = document.createElement('div');
-            individualExamples.innerHTML = '<h4>CDC Scaled Bitmap - Individual Character Examples with 8× Magnification</h4>';
+            individualExamples.innerHTML = '<h4>CDC Character Scale Examples - Individual Character with 8× Magnification</h4>';
             individualExamples.style.marginTop = '20px';
             
-            const scales = [1, 2, 4];
+            const characterScales = [1, 2, 4];  // CDC native character scales
             const exampleChar = selectedCharacter;
             
             const exampleWrapper = document.createElement('div');
@@ -344,19 +352,19 @@
             exampleWrapper.style.gap = '20px';
             exampleWrapper.style.marginTop = '10px';
             
-            scales.forEach(scale => {
+            characterScales.forEach(characterScale => {
                 const itemWrapper = document.createElement('div');
                 
                 // True size canvas
                 const trueCanvas = document.createElement('canvas');
-                const size = 7 * scale;
+                const size = 7 * characterScale;  // CDC native character size
                 trueCanvas.width = size;
                 trueCanvas.height = size;
                 trueCanvas.style.border = '1px solid #999';
                 trueCanvas.style.imageRendering = 'pixelated';
                 const trueCtx = trueCanvas.getContext('2d');
                 
-                renderCDCScaledBitmap(trueCtx, tripletRom[exampleChar], scale, {
+                renderCDCScaledBitmap(trueCtx, tripletRom[exampleChar], characterScale, {
                     pixelColor: '#000000',
                     backgroundColor: '#ffffff',
                     showPixelGrid: false
@@ -373,7 +381,7 @@
                 // Scale up the context and render
                 magCtx.save();
                 magCtx.scale(8, 8);
-                renderCDCScaledBitmap(magCtx, tripletRom[exampleChar], scale, {
+                renderCDCScaledBitmap(magCtx, tripletRom[exampleChar], characterScale, {
                     pixelColor: '#000000',
                     backgroundColor: '#ffffff',
                     showPixelGrid: true
@@ -382,7 +390,7 @@
                 
                 const itemLabel = document.createElement('div');
                 itemLabel.innerHTML = `
-                    <strong>${scale}× Scale</strong><br>
+                    <strong>Character Scale ${characterScale}</strong><br>
                     ${size}×${size}px actual<br>
                     <span style="color: #666">↓ 8× magnified ↓</span>
                 `;

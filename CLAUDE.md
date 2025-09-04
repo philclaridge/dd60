@@ -20,6 +20,48 @@ The foundation of this project centers around:
 2. **Vector Drawing Logic Timing**: Precise timing emulation for vector operations
 3. **Vector CRT Physics**: Understanding and modeling of vector CRT display characteristics
 
+## Display Scaling System (Fundamental Architecture)
+
+The DD60 emulation implements a **three-level scaling system** that is fundamental throughout the codebase:
+
+### 1. Character Scale (CDC Native)
+- **Values**: 1, 2, 4 (representing x1, x2, x4 character sizes)
+- **Behavior**: Authentic CDC 6602 hardware scaling - line width remains constant
+- **Variable naming**: `characterScale`, `charScale`, or `cScale`
+
+### 2. Canvas Scale (Logical Resolution)  
+- **Values**: 1, 2, 4, 8 (representing 512, 1024, 2048, 4096 pixel canvases)
+- **Behavior**: Proportional scaling of all elements including line width
+- **Variable naming**: `canvasScale`, `logicalScale`, or `rScale`
+
+### 3. Device Scale (DPR/Retina) - FUTURE FEATURE
+- **Status**: Not yet implemented, planned for future release
+- **Values**: 1, 2, 4 (representing x1, x2, x3 device pixel ratios)
+- **Behavior**: OS/browser handled physical pixel density
+- **Variable naming**: `deviceScale`, `dpr`, or `dScale`
+- **Note**: Currently all rendering assumes Device Scale = 1
+
+### Total Scaling Formula
+```javascript
+// Fundamental calculation used throughout the codebase
+const totalPhysicalPixels = characterScale * canvasScale * devicePixelRatio;
+```
+
+### Implementation Constants
+```javascript
+// Standard scale values used across all modules
+const CHARACTER_SCALES = [1, 2, 4];
+const CANVAS_SCALES = [1, 2, 4, 8];  // 512, 1024, 2048, 4096
+const CANVAS_RESOLUTIONS = {
+  1: 512,
+  2: 1024,
+  4: 2048,
+  8: 4096
+};
+```
+
+**Important**: When implementing any rendering or scaling functionality, always consider all three scaling levels and their interactions. This system enables both hardware-authentic CDC behavior and modern high-resolution display support.
+
 ## Planned Deliverables
 
 This testbench will produce:
@@ -34,6 +76,7 @@ This testbench will produce:
 - Keep README.md clean as it will be the GitHub front page
 - No framework dependencies - vanilla JavaScript only
 - Code must be suitable for public scrutiny and collaboration
+- **NEVER run `git push` unless explicitly asked by the user**
 
 ### JavaScript Coding Standards
 

@@ -310,23 +310,23 @@ export function createRenderer(defaultOptions = {}) {
 }
 
 /**
- * Render character with CDC vector scaling
- * Scales the vector coordinates, not the bitmap pixels
+ * Render character with CDC native character scaling
+ * Implements authentic CDC 6602 character scaling where line width remains constant
  * @param {CanvasRenderingContext2D} ctx - Canvas context
  * @param {Array} triplets - Array of [x, y, intensity] triplets
- * @param {number} scale - Scale factor (1, 2, or 4)
+ * @param {number} characterScale - CDC native character scale (1, 2, or 4)
  * @param {Object} options - Rendering options
  */
-export function renderCDCScaledBitmap(ctx, triplets, scale = 1, options = {}) {
+export function renderCDCScaledBitmap(ctx, triplets, characterScale = 1, options = {}) {
     const {
         pixelColor = '#000000',
         backgroundColor = '#ffffff',
-        beamWidth = 1,  // Always 1 pixel wide regardless of scale
+        beamWidth = 1,  // CDC authentic: line width constant regardless of character scale
         showPixelGrid = false,
         gridColor = '#f0f0f0'
     } = options;
     
-    const resolution = 7 * scale;  // 7, 14, or 28 pixels
+    const resolution = 7 * characterScale;  // Character Scale: 1=7px, 2=14px, 4=28px
     
     // Clear canvas
     ctx.fillStyle = backgroundColor;
@@ -358,13 +358,13 @@ export function renderCDCScaledBitmap(ctx, triplets, scale = 1, options = {}) {
     for (const [x, y, intensity] of triplets) {
         if (intensity > 0) {
             // Scale the coordinates, not the pixel size
-            const scaledX0 = prevX * scale;
-            const scaledY0 = prevY * scale;
-            const scaledX1 = x * scale;
-            const scaledY1 = y * scale;
+            const scaledX0 = prevX * characterScale;
+            const scaledY0 = prevY * characterScale;
+            const scaledX1 = x * characterScale;
+            const scaledY1 = y * characterScale;
             
             // Draw 1-pixel wide line at scaled coordinates
-            drawCDCBitmapLine(ctx, scaledX0, scaledY0, scaledX1, scaledY1, beamWidth, scale);
+            drawCDCBitmapLine(ctx, scaledX0, scaledY0, scaledX1, scaledY1, beamWidth, characterScale);
         }
         prevX = x;
         prevY = y;
@@ -379,9 +379,9 @@ export function renderCDCScaledBitmap(ctx, triplets, scale = 1, options = {}) {
  * @param {number} x1 - End X in scaled pixel coordinates
  * @param {number} y1 - End Y in scaled pixel coordinates
  * @param {number} beamWidth - Width of beam in pixels (typically 1)
- * @param {number} scale - Scale factor to determine canvas size
+ * @param {number} characterScale - Character scale factor to determine canvas size
  */
-function drawCDCBitmapLine(ctx, x0, y0, x1, y1, beamWidth, scale) {
+function drawCDCBitmapLine(ctx, x0, y0, x1, y1, beamWidth, characterScale) {
     const dx = Math.abs(x1 - x0);
     const dy = Math.abs(y1 - y0);
     const sx = x0 < x1 ? 1 : -1;
@@ -393,10 +393,10 @@ function drawCDCBitmapLine(ctx, x0, y0, x1, y1, beamWidth, scale) {
     
     while (true) {
         // Draw pixel (flip Y for display)
-        // Coordinates are already scaled (0 to 6*scale)
-        // For Y-flip: in scaled space, max coord is 6*scale, but we want the last pixel row
-        // Since pixels are 0-indexed, coordinate 6*scale maps to pixel row (7*scale - 1)
-        const pixelY = (7 * scale - 1) - y;
+        // Coordinates are already scaled (0 to 6*characterScale)
+        // For Y-flip: in scaled space, max coord is 6*characterScale, but we want the last pixel row
+        // Since pixels are 0-indexed, coordinate 6*characterScale maps to pixel row (7*characterScale - 1)
+        const pixelY = (7 * characterScale - 1) - y;
         ctx.fillRect(x, pixelY, beamWidth, beamWidth);
         
         if (x === x1 && y === y1) break;
