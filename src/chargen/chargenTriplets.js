@@ -3,7 +3,7 @@
 // Triplet format: [destination_x_abs, destination_y_abs, beam_intensity]
 
 import { cdcRomBinary } from './cdcRomBinary.js';
-import { binaryToVector } from './cdcRomFunctions.js';
+import { binaryToVector, getCharacterBinary } from './cdcRomFunctions.js';
 
 /**
  * Convert vector data to triplet array format
@@ -43,7 +43,7 @@ export function generateTripletRom() {
  * @returns {Array} Array of [x, y, beamIntensity] triplets
  */
 export function getCharacterTriplets(char) {
-    const binaryData = cdcRomBinary[char] || cdcRomBinary[' '];
+    const binaryData = getCharacterBinary(char);
     const vectorData = binaryToVector(binaryData);
     return vectorToTriplets(vectorData);
 }

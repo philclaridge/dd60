@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This repository is a testbench to develop critical code modules for a high-fidelity emulation of a DD60 operator's console for a CDC6600 emulation that is already developed elsewhere. This project focuses on the foundational components needed for accurate DD60 console emulation.
+This repository is a test-bench to develop critical code modules for a high-fidelity emulation of a DD60 operator's console for a CDC6600 emulation that is already developed elsewhere. This project focuses on the foundational components needed for accurate DD60 console emulation.
 
 ## Technology Stack
 
@@ -88,6 +88,9 @@ npx playwright show-report # View test results
 Due to ES module CORS restrictions with `file://` protocol, use the HTTP server test approach:
 
 ```bash
+# Start HTTP server for testing (required for ES6 modules)
+python3 -m http.server 8000
+
 # Successful bitmap verification test (includes HTTP server)
 npx playwright test tests/server-bitmap-test.spec.js
 
@@ -97,6 +100,16 @@ npx playwright test --debug               # Run in debug mode
 npx playwright test --reporter=list       # Detailed console output
 npx playwright codegen                    # Generate test code interactively
 ```
+
+**Critical**: Always use HTTP server for Playwright testing to prevent CORS issues with ES6 module imports. Use `http://localhost:8000/` URLs instead of `file://` URLs in test scripts.
+
+**⚠️ CORS Testing Guidelines for Claude**:
+- **NEVER** use `file://` protocol for testing ES6 modules (will always fail with CORS errors)
+- **ALWAYS** start HTTP server first: `python3 -m http.server 8000`
+- **ALWAYS** use `http://localhost:8000/` URLs in Playwright tests
+- **DO NOT** repeatedly attempt `file://` testing when CORS errors occur
+- **VERIFY** HTTP server is running with `curl -s -I http://localhost:8000/` before testing
+- **USE** HTTP-based tests like `tests/server-bitmap-test.spec.js` as templates
 
 **Important**: HTML files are now in root directory (`view_chargen_scaled.html`, `view_chargen_rom.html`) with imports to `./src/chargen/` modules. This resolves path resolution issues for both direct browser access and Playwright testing.
 

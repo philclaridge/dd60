@@ -5,7 +5,7 @@ test.describe('DD60 Character Bitmap Rendering', () => {
   
   test('bitmap rendering displays correctly', async ({ page }) => {
     // Navigate to the scaled character viewer
-    await page.goto('file://' + process.cwd() + '/src/chargen/view_chargen_scaled.html');
+    await page.goto('file://' + process.cwd() + '/view_chargen_scaled.html');
     
     // Wait for the page to load and render
     await page.waitForLoadState('networkidle');
@@ -30,7 +30,7 @@ test.describe('DD60 Character Bitmap Rendering', () => {
   });
 
   test('can extract bitmap pixel data for character A', async ({ page }) => {
-    await page.goto('file://' + process.cwd() + '/src/chargen/view_chargen_scaled.html');
+    await page.goto('file://' + process.cwd() + '/view_chargen_scaled.html');
     await page.waitForLoadState('networkidle');
     
     // Select 'A' and bitmap mode
@@ -94,7 +94,7 @@ test.describe('DD60 Character Bitmap Rendering', () => {
   });
 
   test('bitmap grid alignment verification', async ({ page }) => {
-    await page.goto('file://' + process.cwd() + '/src/chargen/view_chargen_scaled.html');
+    await page.goto('file://' + process.cwd() + '/view_chargen_scaled.html');
     await page.waitForLoadState('networkidle');
     
     // Enable grid display
@@ -149,7 +149,7 @@ test.describe('DD60 Character Bitmap Rendering', () => {
       consoleErrors.push(`Page error: ${exception.message}`);
     });
     
-    await page.goto('file://' + process.cwd() + '/src/chargen/view_chargen_scaled.html');
+    await page.goto('file://' + process.cwd() + '/view_chargen_scaled.html');
     await page.waitForLoadState('networkidle');
     
     // Test various interactions
