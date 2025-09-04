@@ -211,6 +211,20 @@ npx playwright codegen                    # Generate test code interactively
 
 **Important**: HTML files are in root directory (`scaled_viewer.html`, `rom_viewer.html`) with imports to `./src/` modules. This resolves path resolution issues for both direct browser access and Playwright testing.
 
+### GitHub Pages Cache Control
+
+All HTML files include cache-control meta tags to help reduce caching during development:
+```html
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
+```
+
+**Note**: GitHub Pages may still cache. Users can:
+- Hard refresh: Cmd+Shift+R (Mac) or Ctrl+Shift+R (Windows)
+- Append `?v=timestamp` to URLs for cache busting
+- Wait 10 minutes for GitHub's CDN cache to expire
+
 ### Playwright Capabilities for DD60
 
 - **Character Renderer Testing**: Verify triplet arrays render correctly at multiple scales
