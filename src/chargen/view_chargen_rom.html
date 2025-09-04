@@ -40,17 +40,6 @@
             background: #e0e0e0;
             font-weight: bold;
         }
-        .beam-on {
-            background: #90EE90;
-        }
-        .beam-off {
-            background: #FFE0E0;
-        }
-        .error {
-            background: #FF6B6B;
-            color: white;
-            font-weight: bold;
-        }
         .summary {
             background: #fffacd;
             padding: 10px;
@@ -135,6 +124,12 @@
                 -webkit-print-color-adjust: exact;
                 color-adjust: exact;
             }
+            /* Direction change row styling for print */
+            tr[style*="background-color: #ffe6e6"] {
+                background-color: #ffe6e6 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
             .grid-canvas {
                 border: 1px solid #000;
                 margin: 5px 0;
@@ -196,6 +191,7 @@
         <p><span style="color: #b3d9ff; font-weight: bold;">━</span> Light blue lines: Beam OFF movements (positioning only)</p>
         <p><span style="color: #000000; font-weight: bold;">▶</span> Black arrowheads: Direction indicators on length-2 horizontal/vertical/diagonal segments</p>
         <p><span style="color: #999; font-weight: bold;">┼</span> Gray grid: 8×8 character matrix coordinate system</p>
+        <p><span style="background-color: #ffe6e6; padding: 2px 4px; border: 1px solid #ccc;">C</span> Direction change markers: 'C' instead of 'X' when both H1&H2 or V1&V2 are set (light pink row background)</p>
     </div>
 
     <div id="output"></div>
@@ -236,7 +232,7 @@
             // Draw character strokes
             ctx.strokeStyle = '#00ff00';
             ctx.lineWidth = 2;
-            let prevBeam = false;
+            // let prevBeam = false;
             
             for (let i = 0; i < strokes.length; i++) {
                 const [x, y, beam] = strokes[i];
@@ -245,8 +241,8 @@
                 
                 if (i === 0) {
                     // Draw pale blue line from implicit origin (0,0) to first point
-                    const originX = 0 * scale + scale/2;
-                    const originY = (7 - 0) * scale + scale/2; // Origin at (0,0)
+                    const originX = scale/2;
+                    const originY = 7 * scale + scale/2; // Origin at (0,0)
                     
                     ctx.beginPath();
                     ctx.moveTo(originX, originY);
@@ -263,7 +259,7 @@
                     ctx.moveTo(ppx, ppy);
                     ctx.lineTo(px, py);
                     
-                    if (prevBeam && beam) {
+                    if (beam) {
                         // Green line for beam-on strokes
                         ctx.strokeStyle = '#00ff00';
                         ctx.lineWidth = 2;
@@ -358,8 +354,7 @@
                     ctx.arc(px, py, 3, 0, 2 * Math.PI);
                     ctx.fill();
                 }
-                
-                prevBeam = beam;
+
             }
         }
 
@@ -393,14 +388,22 @@
                 // Generate timing label matching octal format from reference
                 const label = i === 0 ? '76' : (i-1).toString(8).padStart(2, '0');
                 
-                // More compact style with proper spacing
+                // Check for direction changes (when both flags are set)
+                const isVerticalDirectionChange = V1 && V2;
+                const isHorizontalDirectionChange = H1 && H2;
+                const hasDirectionChange = isVerticalDirectionChange || isHorizontalDirectionChange;
+                
+                // Row background color for direction changes
+                const rowStyle = hasDirectionChange ? 'background-color: #ffe6e6;' : '';
+                
+                // More compact style with proper spacing and direction change markers
                 html += `
-                    <tr>
+                    <tr style="${rowStyle}">
                         <td style="border: 1px solid black; padding: 2px 6px; font-weight: bold; text-align: left;">${label}</td>
-                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${V1 ? 'X' : ' '}</td>
-                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${V2 ? 'X' : ' '}</td>
-                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${H1 ? 'X' : ' '}</td>
-                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${H2 ? 'X' : ' '}</td>
+                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${V1 ? (isVerticalDirectionChange ? 'C' : 'X') : ' '}</td>
+                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${V2 ? (isVerticalDirectionChange ? 'C' : 'X') : ' '}</td>
+                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${H1 ? (isHorizontalDirectionChange ? 'C' : 'X') : ' '}</td>
+                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${H2 ? (isHorizontalDirectionChange ? 'C' : 'X') : ' '}</td>
                         <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${U ? 'X' : ' '}</td>
                     </tr>
                 `;
