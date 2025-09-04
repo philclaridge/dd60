@@ -48,6 +48,18 @@ The DD60 emulation implements a **four-parameter system** for character generati
 - **Variable naming**: `bitDepth`, `colorDepth`, or `bDepth`
 - **Behavior**: Controls rendering pipeline and memory requirements
 
+### 5. Artifact Level (CRT Effects) - PLACEHOLDER/FUTURE
+- **Status**: Not yet defined, placeholder for future CRT emulation
+- **Potential Values**: 0-9 or named presets
+- **Examples of artifacts to model**:
+  - XY deflection distortion (pincushion, barrel)
+  - Phosphor blur and bloom
+  - Beam convergence errors
+  - Analog signal bandwidth limitations
+  - Retrace lines and phosphor persistence
+- **Variable naming**: `artifactLevel`, `crtEffects`, or `aLevel`
+- **Note**: Will control authentic CRT visual characteristics
+
 ### Total Scaling Formula
 ```javascript
 // Fundamental calculation used throughout the codebase
@@ -79,8 +91,9 @@ const BIT_DEPTHS = {
 ### Font/Asset Naming Convention
 ```javascript
 // Standard naming format for generated assets
-`DD60_C${characterScale}_R${canvasScale}_D${deviceScale}_B${bitDepth}`
-// Example: DD60_C2_R4_D1_B8 = Character x2, 2048px canvas, standard display, RGBA
+`DD60_C${characterScale}_R${canvasScale}_D${deviceScale}_B${bitDepth}_A${artifactLevel}`
+// Example: DD60_C2_R4_D1_B8_A0 = Character x2, 2048px canvas, standard display, RGBA, no artifacts
+// Note: _A suffix is optional until artifact system is implemented
 ```
 
 **Important**: When implementing any rendering or scaling functionality, always consider all four parameters and their interactions. This system enables both hardware-authentic CDC behavior and modern high-resolution display support with various rendering modes.
