@@ -22,7 +22,7 @@ The foundation of this project centers around:
 
 ## Display Scaling System (Fundamental Architecture)
 
-The DD60 emulation implements a **three-level scaling system** that is fundamental throughout the codebase:
+The DD60 emulation implements a **four-parameter system** for character generation and display:
 
 ### 1. Character Scale (CDC Native)
 - **Values**: 1, 2, 4 (representing x1, x2, x4 character sizes)
@@ -41,15 +41,23 @@ The DD60 emulation implements a **three-level scaling system** that is fundament
 - **Variable naming**: `deviceScale`, `dpr`, or `dScale`
 - **Note**: Currently all rendering assumes Device Scale = 1
 
+### 4. Bit Depth (Color/Rendering Mode)
+- **Values**: 1, 8 (future: 4, 16, 32)
+- **1-bit**: Monochrome (black & white) - authentic CDC display mode
+- **8-bit**: RGBA with 8 bits per channel - modern rendering with effects
+- **Variable naming**: `bitDepth`, `colorDepth`, or `bDepth`
+- **Behavior**: Controls rendering pipeline and memory requirements
+
 ### Total Scaling Formula
 ```javascript
 // Fundamental calculation used throughout the codebase
 const totalPhysicalPixels = characterScale * canvasScale * devicePixelRatio;
+const memoryRequirement = totalPhysicalPixels * totalPhysicalPixels * (bitDepth / 8);
 ```
 
 ### Implementation Constants
 ```javascript
-// Standard scale values used across all modules
+// Standard parameter values used across all modules
 const CHARACTER_SCALES = [1, 2, 4];
 const CANVAS_SCALES = [1, 2, 4, 8];  // 512, 1024, 2048, 4096
 const CANVAS_RESOLUTIONS = {
@@ -58,9 +66,24 @@ const CANVAS_RESOLUTIONS = {
   4: 2048,
   8: 4096
 };
+const BIT_DEPTHS = {
+  MONO: 1,      // Monochrome (authentic)
+  RGBA: 8,      // Full color with alpha
+  // Future expansions:
+  // INDEXED: 4,  // 16-color palette
+  // HDR: 16,     // High dynamic range
+  // FLOAT: 32    // Floating point precision
+};
 ```
 
-**Important**: When implementing any rendering or scaling functionality, always consider all three scaling levels and their interactions. This system enables both hardware-authentic CDC behavior and modern high-resolution display support.
+### Font/Asset Naming Convention
+```javascript
+// Standard naming format for generated assets
+`DD60_C${characterScale}_R${canvasScale}_D${deviceScale}_B${bitDepth}`
+// Example: DD60_C2_R4_D1_B8 = Character x2, 2048px canvas, standard display, RGBA
+```
+
+**Important**: When implementing any rendering or scaling functionality, always consider all four parameters and their interactions. This system enables both hardware-authentic CDC behavior and modern high-resolution display support with various rendering modes.
 
 ## Planned Deliverables
 
