@@ -61,11 +61,56 @@ src/
     └── [test files]            # Round-trip validation tests
 ```
 
+## Testing and Verification
+
+### Playwright Testing Framework
+
+The project includes Playwright for automated testing and visual verification:
+
+- **Installation**: `npm install` (already configured in package.json)
+- **Browser Setup**: `npx playwright install` (downloads Chrome, Firefox, WebKit)
+- **Use Cases**: 
+  - Visual regression testing of character rendering
+  - Canvas content verification across different scales
+  - Error detection in visualization tools
+  - Cross-browser compatibility testing
+
+### Testing Commands
+
+```bash
+npm test                    # Run test suite (to be implemented)
+npx playwright test        # Run Playwright tests
+npx playwright show-report # View test results
+```
+
+### Running Playwright Tests
+
+Due to ES module CORS restrictions with `file://` protocol, use the HTTP server test approach:
+
+```bash
+# Successful bitmap verification test (includes HTTP server)
+npx playwright test tests/server-bitmap-test.spec.js
+
+# Other useful Playwright commands
+npx playwright test --headed              # Run with browser visible
+npx playwright test --debug               # Run in debug mode
+npx playwright test --reporter=list       # Detailed console output
+npx playwright codegen                    # Generate test code interactively
+```
+
+**Important**: HTML files are now in root directory (`view_chargen_scaled.html`, `view_chargen_rom.html`) with imports to `./src/chargen/` modules. This resolves path resolution issues for both direct browser access and Playwright testing.
+
+### Playwright Capabilities for DD60
+
+- **Character Renderer Testing**: Verify triplet arrays render correctly at multiple scales
+- **Canvas Introspection**: Extract and compare pixel data from character visualizations
+- **Error Monitoring**: Detect JavaScript errors, failed network requests, console warnings
+- **Visual Comparisons**: Screenshot-based regression testing for rendering techniques
+
 ## Development Notes
 
 As this project grows, future updates should include:
 
-- Build and compilation commands once a build system is established
-- Testing framework and commands when tests are added
 - Architecture documentation as the emulation components are implemented
 - Specific details about DD60 console emulation implementation patterns
+- Test suites for character generation and rendering validation

@@ -1,0 +1,448 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DD60 Character Visualization - Multiple Scales</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        
+        h1 {
+            color: #333;
+        }
+        
+        .controls {
+            background: white;
+            padding: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            margin-bottom: 20px;
+        }
+        
+        .controls label {
+            margin-right: 15px;
+            font-weight: bold;
+        }
+        
+        .controls input, .controls select {
+            margin-right: 20px;
+        }
+        
+        .visualization-container {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+        
+        .render-panel {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            padding: 15px;
+        }
+        
+        .render-panel h3 {
+            margin-top: 0;
+            color: #0066cc;
+        }
+        
+        .canvas-wrapper {
+            border: 1px solid #999;
+            display: inline-block;
+            margin: 10px 0;
+        }
+        
+        .info-panel {
+            background: #fffacd;
+            padding: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9900;
+        }
+        
+        .stats {
+            font-size: 12px;
+            color: #666;
+            margin-top: 10px;
+        }
+        
+        .character-selector {
+            display: grid;
+            grid-template-columns: repeat(10, 1fr);
+            gap: 5px;
+            margin: 10px 0;
+        }
+        
+        .character-button {
+            padding: 5px;
+            border: 1px solid #ccc;
+            background: white;
+            cursor: pointer;
+            text-align: center;
+            font-family: monospace;
+        }
+        
+        .character-button:hover {
+            background: #e0e0e0;
+        }
+        
+        .character-button.selected {
+            background: #0066cc;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <h1>DD60 Character Visualization - Multiple Scales & Techniques</h1>
+    
+    <div id="cdcTestPattern" style="margin: 20px 0;">
+        <!-- CDC test pattern will be inserted here -->
+    </div>
+    
+    <!-- Single view - no need for technique selector buttons -->
+    
+    <div class="controls">
+        <h3>Character Selection</h3>
+        <div class="character-selector" id="characterSelector"></div>
+        
+        <h3>Rendering Options</h3>
+        <label>
+            <input type="checkbox" id="showBeamOff" checked> Show Beam-Off Movements
+        </label>
+        <label>
+            <input type="checkbox" id="showArrowheads" checked> Show Direction Arrows
+        </label>
+        <label>
+            <input type="checkbox" id="showDwellPoints" checked> Show Dwell Points
+        </label>
+        <label>
+            <input type="checkbox" id="showGrid" checked> Show Grid
+        </label>
+    </div>
+    
+    <div class="visualization-container" id="visualizationContainer">
+        <!-- Rendering panels will be inserted here -->
+    </div>
+    
+    <script type="module">
+        import { generateTripletRom, getCharacterTriplets, getCharacterBounds, 
+                 calculateBeamOnDistance, findDwellPoints } from './src/chargen/chargenTriplets.js';
+        import { drawGrid, renderTriplets, renderBitmap, createRenderer,
+                 renderCDCScaledBitmap, renderTrueSizeBitmap } from './src/chargen/chargenRenderer.js';
+        
+        // Generate triplet data for all characters
+        const tripletRom = generateTripletRom();
+        
+        // State
+        let selectedCharacter = 'A';
+        
+        // Render CDC test pattern (always visible)
+        function renderCDCTestPattern() {
+            const container = document.getElementById('cdcTestPattern');
+            container.innerHTML = '';
+            
+            const panel = document.createElement('div');
+            panel.className = 'render-panel';
+            panel.innerHTML = '<h3>CDC 6600 Display Test Pattern - 512×512 pixels</h3>';
+            
+            // Create 512x512 test canvas with all characters
+            const testCanvas = document.createElement('canvas');
+            testCanvas.width = 512;
+            testCanvas.height = 512;
+            testCanvas.style.border = '1px solid #000';
+            testCanvas.style.imageRendering = 'pixelated';
+            const ctx = testCanvas.getContext('2d');
+            
+            // Fill background
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, 512, 512);
+            
+            const charOrder = '0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/()=,.';
+            const availableChars = charOrder.split('').filter(c => tripletRom[c]);
+            
+            // Layout calculations for 512x512 canvas
+            // 1x: 10px per char = 50 chars/row, need ~46 chars total
+            // 2x: 20px per char = 25 chars/row 
+            // 4x: 40px per char = 12 chars/row
+            
+            // Draw ALL 1x scale characters in top section
+            ctx.save();
+            ctx.translate(10, 15);
+            let x = 0, y = 0;
+            const cols1x = Math.floor(492 / 10); // Max columns that fit
+            availableChars.forEach((char, i) => {
+                if (i > 0 && i % cols1x === 0) {
+                    x = 0;
+                    y += 10; // 7 pixels + 3 spacing
+                }
+                ctx.save();
+                ctx.translate(x, y);
+                renderTrueSizeBitmap(ctx, tripletRom[char], {
+                    pixelColor: '#00ff00',
+                    backgroundColor: 'transparent'
+                });
+                ctx.restore();
+                x += 10;
+            });
+            ctx.restore();
+            
+            // Draw ALL 2x scale characters in middle section
+            ctx.save();
+            ctx.translate(10, 45);
+            x = 0; y = 0;
+            const cols2x = Math.floor(492 / 20); // Max columns that fit
+            availableChars.forEach((char, i) => {
+                if (i > 0 && i % cols2x === 0) {
+                    x = 0;
+                    y += 20; // 14 pixels + 6 spacing (scaled)
+                }
+                ctx.save();
+                ctx.translate(x, y);
+                renderCDCScaledBitmap(ctx, tripletRom[char], 2, {
+                    pixelColor: '#00ff00',
+                    backgroundColor: 'transparent',
+                    showPixelGrid: false
+                });
+                ctx.restore();
+                x += 20;
+            });
+            ctx.restore();
+            
+            // Draw ALL 4x scale characters in bottom section
+            ctx.save();
+            ctx.translate(10, 295);
+            x = 0; y = 0;
+            const cols4x = Math.floor(492 / 40); // Max columns that fit
+            availableChars.forEach((char, i) => {
+                if (i > 0 && i % cols4x === 0) {
+                    x = 0;
+                    y += 40; // 28 pixels + 12 spacing (scaled)
+                }
+                ctx.save();
+                ctx.translate(x, y);
+                renderCDCScaledBitmap(ctx, tripletRom[char], 4, {
+                    pixelColor: '#00ff00',
+                    backgroundColor: 'transparent',
+                    showPixelGrid: false
+                });
+                ctx.restore();
+                x += 40;
+            });
+            ctx.restore();
+            
+            // Add labels
+            ctx.fillStyle = '#00ff00';
+            ctx.font = '10px monospace';
+            ctx.fillText('1× (7×7 pixels) - All Characters', 10, 10);
+            ctx.fillText('2× (14×14 pixels) - All Characters', 10, 40);
+            ctx.fillText('4× (28×28 pixels) - All Characters', 10, 290);
+            
+            const wrapper = document.createElement('div');
+            wrapper.className = 'canvas-wrapper';
+            wrapper.appendChild(testCanvas);
+            
+            const label = document.createElement('div');
+            label.innerHTML = `
+                <span style="color: #666">All characters at 1×, 2×, and 4× vector scaling. Note: Beam width remains 1 pixel at all scales</span>
+            `;
+            label.style.textAlign = 'center';
+            label.style.marginTop = '10px';
+            wrapper.appendChild(label);
+            
+            panel.appendChild(wrapper);
+            container.appendChild(panel);
+        }
+        
+        // Initialize character selector
+        function initializeCharacterSelector() {
+            const selector = document.getElementById('characterSelector');
+            const charOrder = '0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/()=,.';
+            
+            for (const char of charOrder) {
+                if (tripletRom[char]) {
+                    const button = document.createElement('button');
+                    button.className = 'character-button';
+                    button.textContent = char === ' ' ? '␣' : char;
+                    button.dataset.char = char;
+                    button.onclick = () => selectCharacter(char);
+                    if (char === selectedCharacter) {
+                        button.classList.add('selected');
+                    }
+                    selector.appendChild(button);
+                }
+            }
+        }
+        
+        // Select character
+        function selectCharacter(char) {
+            selectedCharacter = char;
+            
+            // Update button states
+            document.querySelectorAll('.character-button').forEach(btn => {
+                btn.classList.toggle('selected', btn.dataset.char === char);
+            });
+            
+            // Re-render
+            renderVisualization();
+        }
+        
+        // Get rendering options from controls
+        function getRenderingOptions() {
+            return {
+                showBeamOff: document.getElementById('showBeamOff').checked,
+                showArrowheads: document.getElementById('showArrowheads').checked,
+                showDwellPoints: document.getElementById('showDwellPoints').checked,
+                showGrid: document.getElementById('showGrid').checked
+            };
+        }
+        
+// Render comparison
+        function renderComparison(container) {
+            container.innerHTML = '<h3>Vector vs CDC Scaled Bitmap Comparison</h3>';
+            
+            const comparisonScale = 28;
+            
+            // First row: Vector rendering
+            const vectorSection = document.createElement('div');
+            vectorSection.style.marginBottom = '20px';
+            
+            const vectorPanel = document.createElement('div');
+            const vectorCanvas = document.createElement('canvas');
+            vectorCanvas.width = 8 * comparisonScale;
+            vectorCanvas.height = 8 * comparisonScale;
+            const vectorCtx = vectorCanvas.getContext('2d');
+            
+            const options = getRenderingOptions();
+            const triplets = tripletRom[selectedCharacter];
+            
+            if (options.showGrid) {
+                drawGrid(vectorCtx, 8, comparisonScale);
+            }
+            renderTriplets(vectorCtx, triplets, comparisonScale, options);
+            
+            vectorPanel.innerHTML = '<h4>Vector Rendering (28px scale)</h4>';
+            vectorPanel.appendChild(vectorCanvas);
+            vectorSection.appendChild(vectorPanel);
+            container.appendChild(vectorSection);
+            
+            // Second row: CDC Scaled Bitmap Examples with 8× Magnification
+            const individualExamples = document.createElement('div');
+            individualExamples.innerHTML = '<h4>CDC Scaled Bitmap - Individual Character Examples with 8× Magnification</h4>';
+            individualExamples.style.marginTop = '20px';
+            
+            const scales = [1, 2, 4];
+            const exampleChar = selectedCharacter;
+            
+            const exampleWrapper = document.createElement('div');
+            exampleWrapper.style.display = 'flex';
+            exampleWrapper.style.gap = '20px';
+            exampleWrapper.style.marginTop = '10px';
+            
+            scales.forEach(scale => {
+                const itemWrapper = document.createElement('div');
+                
+                // True size canvas
+                const trueCanvas = document.createElement('canvas');
+                const size = 7 * scale;
+                trueCanvas.width = size;
+                trueCanvas.height = size;
+                trueCanvas.style.border = '1px solid #999';
+                trueCanvas.style.imageRendering = 'pixelated';
+                const trueCtx = trueCanvas.getContext('2d');
+                
+                renderCDCScaledBitmap(trueCtx, tripletRom[exampleChar], scale, {
+                    pixelColor: '#000000',
+                    backgroundColor: '#ffffff',
+                    showPixelGrid: false
+                });
+                
+                // 8x magnified canvas
+                const magCanvas = document.createElement('canvas');
+                magCanvas.width = size * 8;
+                magCanvas.height = size * 8;
+                magCanvas.style.border = '1px solid #999';
+                magCanvas.style.imageRendering = 'pixelated';
+                const magCtx = magCanvas.getContext('2d');
+                
+                // Scale up the context and render
+                magCtx.save();
+                magCtx.scale(8, 8);
+                renderCDCScaledBitmap(magCtx, tripletRom[exampleChar], scale, {
+                    pixelColor: '#000000',
+                    backgroundColor: '#ffffff',
+                    showPixelGrid: true
+                });
+                magCtx.restore();
+                
+                const itemLabel = document.createElement('div');
+                itemLabel.innerHTML = `
+                    <strong>${scale}× Scale</strong><br>
+                    ${size}×${size}px actual<br>
+                    <span style="color: #666">↓ 8× magnified ↓</span>
+                `;
+                itemLabel.style.textAlign = 'center';
+                itemLabel.style.fontSize = '12px';
+                itemLabel.style.marginTop = '5px';
+                
+                itemWrapper.appendChild(trueCanvas);
+                itemWrapper.appendChild(itemLabel);
+                itemWrapper.appendChild(magCanvas);
+                
+                exampleWrapper.appendChild(itemWrapper);
+            });
+            
+            individualExamples.appendChild(exampleWrapper);
+            container.appendChild(individualExamples);
+            
+            // Add character stats
+            addCharacterStats(container);
+        }
+        
+        // Add character statistics
+        function addCharacterStats(container) {
+            const triplets = tripletRom[selectedCharacter];
+            const bounds = getCharacterBounds(triplets);
+            const distance = calculateBeamOnDistance(triplets);
+            const dwells = findDwellPoints(triplets);
+            
+            const stats = document.createElement('div');
+            stats.className = 'stats';
+            stats.innerHTML = `
+                <h4>Character Statistics: '${selectedCharacter}'</h4>
+                <p>Triplets: ${triplets.length}</p>
+                <p>Bounds: X[${bounds.minX}, ${bounds.maxX}] Y[${bounds.minY}, ${bounds.maxY}]</p>
+                <p>Beam-on distance: ${distance.toFixed(2)} units</p>
+                <p>Dwell points: ${dwells.length}</p>
+            `;
+            container.appendChild(stats);
+        }
+        
+        // Main render function
+        function renderVisualization() {
+            const container = document.getElementById('visualizationContainer');
+            container.innerHTML = '';
+            
+            const panel = document.createElement('div');
+            panel.className = 'render-panel';
+            
+            // Always render comparison view
+            renderComparison(panel);
+            
+            container.appendChild(panel);
+        }
+        
+        // Initialize option checkboxes
+        document.querySelectorAll('.controls input[type="checkbox"]').forEach(checkbox => {
+            checkbox.addEventListener('change', renderVisualization);
+        });
+        
+        // Initialize
+        initializeCharacterSelector();
+        renderCDCTestPattern();  // Always show CDC test pattern
+        renderVisualization();
+    </script>
+</body>
+</html>

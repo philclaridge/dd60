@@ -1,0 +1,29 @@
+{
+  "name": "dd60",
+  "version": "1.0.0",
+  "description": "This project is a testbench to develop critical code modules for a high-fidelity emulation of a DD60 operator's console for a CDC6600 emulation.",
+  "main": "index.js",
+  "directories": {
+    "doc": "doc"
+  },
+  "scripts": {
+    "test": "playwright test",
+    "test:headed": "playwright test --headed",
+    "test:debug": "playwright test --debug"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/philclaridge/dd60.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/philclaridge/dd60/issues"
+  },
+  "homepage": "https://github.com/philclaridge/dd60#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.55.0"
+  }
+}
