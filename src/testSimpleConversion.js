@@ -1,5 +1,5 @@
 // Test the simple conversion method
-import { vectorCharacterRomCDC6602 } from './chargen/archive_to_delete/vectorRomCDC6602.js';
+import { vectorCharacterRomCDC6602 } from './archive_to_delete/vectorRomCDC6602.js';
 import { convertVectorToCdcTableSimple } from './vectorToCdcTableCorrect.js';
 
 console.log('Testing Simple Conversion Method');

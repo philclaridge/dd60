@@ -1,7 +1,7 @@
 // Generate CDC ROM binary format from vectorRomCDC6602.js
 // Creates a new JS file with all characters in original binary table format
 
-import { vectorCharacterRomCDC6602 } from './chargen/archive_to_delete/vectorRomCDC6602.js';
+import { vectorCharacterRomCDC6602 } from './archive_to_delete/vectorRomCDC6602.js';
 import { convertVectorToCdcTableSimple } from './vectorToCdcTableCorrect.js';
 import fs from 'fs';
 

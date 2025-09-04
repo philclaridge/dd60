@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DD60 Character Generator Analysis</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 20px;
+            background: #f0f0f0;
+        }
+        h1 {
+            color: #333;
+        }
+        .char-section {
+            background: white;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+            padding: 10px;
+            border-radius: 5px;
+            page-break-inside: avoid;
+        }
+        .char-header {
+            font-size: 24px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #0066cc;
+        }
+        table {
+            border-collapse: collapse;
+            margin: 10px 0;
+        }
+        th, td {
+            border: 1px solid #ddd;
+            padding: 4px 8px;
+            text-align: center;
+        }
+        th {
+            background: #e0e0e0;
+            font-weight: bold;
+        }
+        .beam-on {
+            background: #90EE90;
+        }
+        .beam-off {
+            background: #FFE0E0;
+        }
+        .error {
+            background: #FF6B6B;
+            color: white;
+            font-weight: bold;
+        }
+        .summary {
+            background: #fffacd;
+            padding: 10px;
+            margin: 20px 0;
+            border-left: 4px solid #ff9900;
+            page-break-inside: avoid;
+        }
+        .grid-canvas {
+            border: 1px solid #999;
+            margin: 10px 0;
+            display: inline-block;
+        }
+        
+        /* Print styles */
+        @media print {
+            /* Force color printing */
+            * {
+                -webkit-print-color-adjust: exact !important;
+                color-adjust: exact !important;
+            }
+            body {
+                background: white;
+                margin: 15mm;
+                font-size: 10pt;
+            }
+            .char-section {
+                background: white;
+                border: 1px solid #000;
+                margin: 2px 0;
+                padding: 3px;
+                border-radius: 0;
+                page-break-inside: avoid;
+            }
+            .char-header {
+                font-size: 10pt;
+                color: #0066cc !important;
+                margin-bottom: 2px;
+            }
+            .summary {
+                background: white;
+                border: 1px solid #000;
+                padding: 5px;
+                margin: 10px 0;
+                page-break-inside: avoid;
+            }
+            h1 {
+                color: #333 !important;
+                font-size: 16pt;
+                page-break-after: avoid;
+            }
+            h2 {
+                color: #333 !important;
+                font-size: 12pt;
+                page-break-after: avoid;
+            }
+            table {
+                font-size: 6pt;
+                margin: 2px 0;
+            }
+            th, td {
+                border: 1px solid #000;
+                padding: 1px 2px;
+            }
+            th {
+                background: #e0e0e0 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            .beam-on {
+                background: #90EE90 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            .beam-off {
+                background: #FFE0E0 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            .summary {
+                background: #fffacd !important;
+                border-left: 4px solid #ff9900 !important;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+            }
+            .grid-canvas {
+                border: 1px solid #000;
+                margin: 5px 0;
+            }
+            /* Canvas elements in print - smaller size for efficient layout */
+            canvas {
+                display: block;
+                max-width: 60px !important;
+                max-height: 60px !important;
+                width: 60px !important;
+                height: 60px !important;
+                margin: 1px 0;
+                border: 1px solid #000;
+            }
+            /* Ensure tables don't break across pages */
+            table {
+                page-break-inside: avoid;
+            }
+            /* Add page breaks between character sections - more characters per page */
+            .char-section:nth-child(20n) {
+                page-break-after: always;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>DD60 Character Generator Analysis</h1>
+    <p>Analysis of CDC 6602 character patterns using authentic binary ROM format (cdcRomBinary.js)<br>
+    Binary data is decoded at runtime to vector coordinates showing delta movements between strokes</p>
+    
+    <div class="print-note" style="margin: 10px 0; padding: 5px; background: #e8f4ff; border-left: 3px solid #0066cc;">
+        <strong>Print Note:</strong> This document is optimized for color printing with all information preserved, including vector visualizations and binary ROM data tables.
+    </div>
+    
+    <style>
+        @media print {
+            .print-note {
+                background: white !important;
+                border: 1px solid #000 !important;
+                border-left: 3px solid #000 !important;
+                padding: 3px !important;
+                margin: 5px 0 !important;
+            }
+        }
+    </style>
+    
+    <div class="summary">
+        <h2>Summary</h2>
+        <p>Total characters displayed: <span id="totalChars">0</span></p>
+        <p>Format: CDC 6602 ROM Binary Tables</p>
+        <p>Reference: Authentic timing labels (T) with V₁V₂H₁H₂U flags</p>
+    </div>
+
+    <div class="summary">
+        <h2>Vector Display Legend</h2>
+        <p><span style="color: #00ff00; font-weight: bold;">●</span> Green dots: Beam ON positions (visible strokes)</p>
+        <p><span style="color: #0066ff; font-weight: bold;">●</span> Blue dots: Beam ON dwells (zero delta with beam on for multiple time periods)</p>
+        <p><span style="color: #00ff00; font-weight: bold;">━</span> Green lines: Vector strokes drawn between beam-on positions</p>
+        <p><span style="color: #b3d9ff; font-weight: bold;">━</span> Light blue lines: Beam OFF movements (positioning only)</p>
+        <p><span style="color: #000000; font-weight: bold;">▶</span> Black arrowheads: Direction indicators on length-2 horizontal/vertical/diagonal segments</p>
+        <p><span style="color: #999; font-weight: bold;">┼</span> Gray grid: 8×8 character matrix coordinate system</p>
+    </div>
+
+    <div id="output"></div>
+
+    <script type="module">
+        // Import the CDC ROM binary data and conversion functions
+        import { cdcRomBinary } from './cdcRomBinary.js';
+        import { binaryToVector } from './cdcRomFunctions.js';
+        
+        // Generate the vector ROM at runtime from binary data
+        const vectorCharacterRomCDC6602 = {};
+        for (const [char, binaryData] of Object.entries(cdcRomBinary)) {
+            vectorCharacterRomCDC6602[char] = binaryToVector(binaryData);
+        }
+
+
+        function drawCharacterGrid(strokes, canvasId, scale = 20) {
+            const canvas = document.getElementById(canvasId);
+            const ctx = canvas.getContext('2d');
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw grid
+            ctx.strokeStyle = '#999';
+            ctx.lineWidth = 0.5;
+            for (let i = 0; i <= 8; i++) {
+                ctx.beginPath();
+                ctx.moveTo(i * scale, 0);
+                ctx.lineTo(i * scale, 8 * scale);
+                ctx.stroke();
+                ctx.beginPath();
+                ctx.moveTo(0, i * scale);
+                ctx.lineTo(8 * scale, i * scale);
+                ctx.stroke();
+            }
+            
+            // Draw character strokes
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 2;
+            let prevBeam = false;
+            
+            for (let i = 0; i < strokes.length; i++) {
+                const [x, y, beam] = strokes[i];
+                const px = x * scale + scale/2;
+                const py = (7 - y) * scale + scale/2; // Flip Y axis for display
+                
+                if (i === 0) {
+                    // Draw pale blue line from implicit origin (0,0) to first point
+                    const originX = 0 * scale + scale/2;
+                    const originY = (7 - 0) * scale + scale/2; // Origin at (0,0)
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(originX, originY);
+                    ctx.lineTo(px, py);
+                    ctx.strokeStyle = '#b3d9ff';
+                    ctx.lineWidth = 1;
+                    ctx.stroke();
+                } else {
+                    const [prevX, prevY] = strokes[i-1];
+                    const ppx = prevX * scale + scale/2;
+                    const ppy = (7 - prevY) * scale + scale/2;
+                    
+                    ctx.beginPath();
+                    ctx.moveTo(ppx, ppy);
+                    ctx.lineTo(px, py);
+                    
+                    if (prevBeam && beam) {
+                        // Green line for beam-on strokes
+                        ctx.strokeStyle = '#00ff00';
+                        ctx.lineWidth = 2;
+                    } else {
+                        // Light blue line for beam-off movements
+                        ctx.strokeStyle = '#b3d9ff';
+                        ctx.lineWidth = 1;
+                    }
+                    ctx.stroke();
+                    
+                    // Add arrowheads for length-2 movements (horizontal, vertical, or diagonal)
+                    const dx = px - ppx;
+                    const dy = py - ppy;
+                    const gridDx = Math.abs(dx / scale);
+                    const gridDy = Math.abs(dy / scale);
+                    
+                    // Check for length-2 horizontal/vertical or diagonal with both deltas = 2
+                    const isLength2Horizontal = Math.abs(gridDx - 2) < 0.1 && Math.abs(gridDy) < 0.1;
+                    const isLength2Vertical = Math.abs(gridDy - 2) < 0.1 && Math.abs(gridDx) < 0.1;
+                    const isDiagonal2x2 = Math.abs(gridDx - 2) < 0.1 && Math.abs(gridDy - 2) < 0.1;
+                    
+                    if (isLength2Horizontal || isLength2Vertical || isDiagonal2x2) {
+                        if (isLength2Horizontal) {
+                            // Horizontal line
+                            const arrowX = ppx + dx * 0.7;
+                            const arrowY = ppy;
+                            const arrowSize = 4;
+                            const direction = dx > 0 ? 1 : -1;
+                            
+                            ctx.fillStyle = '#000000';
+                            ctx.beginPath();
+                            ctx.moveTo(arrowX, arrowY);
+                            ctx.lineTo(arrowX - direction * arrowSize, arrowY - arrowSize);
+                            ctx.lineTo(arrowX - direction * arrowSize, arrowY + arrowSize);
+                            ctx.closePath();
+                            ctx.fill();
+                        } else if (isLength2Vertical) {
+                            // Vertical line
+                            const arrowX = ppx;
+                            const arrowY = ppy + dy * 0.7;
+                            const arrowSize = 4;
+                            const direction = dy > 0 ? 1 : -1; // dy > 0 means moving up on screen (after Y-flip)
+                            
+                            ctx.fillStyle = '#000000';
+                            ctx.beginPath();
+                            ctx.moveTo(arrowX, arrowY);
+                            ctx.lineTo(arrowX - arrowSize, arrowY - direction * arrowSize);
+                            ctx.lineTo(arrowX + arrowSize, arrowY - direction * arrowSize);
+                            ctx.closePath();
+                            ctx.fill();
+                        } else if (isDiagonal2x2) {
+                            // Diagonal line with both deltas = 2
+                            const arrowX = ppx + dx * 0.7;
+                            const arrowY = ppy + dy * 0.7;
+                            const arrowSize = 5;
+                            
+                            // Calculate diagonal direction for arrowhead orientation
+                            const angle = Math.atan2(dy, dx);
+                            const cos = Math.cos(angle);
+                            const sin = Math.sin(angle);
+                            
+                            ctx.fillStyle = '#000000';
+                            ctx.beginPath();
+                            ctx.moveTo(arrowX, arrowY);
+                            // Create arrowhead pointing in direction of movement
+                            ctx.lineTo(arrowX - arrowSize * cos - arrowSize * sin * 0.5, 
+                                      arrowY - arrowSize * sin + arrowSize * cos * 0.5);
+                            ctx.lineTo(arrowX - arrowSize * cos + arrowSize * sin * 0.5, 
+                                      arrowY - arrowSize * sin - arrowSize * cos * 0.5);
+                            ctx.closePath();
+                            ctx.fill();
+                        }
+                    }
+                }
+                
+                // Check if beam dwells (zero delta from previous position with beam on)
+                let isBeamDwelling = false;
+                if (i > 0 && beam) {
+                    const [prevX, prevY, prevBeamState] = strokes[i-1];
+                    isBeamDwelling = (x === prevX && y === prevY && prevBeamState);
+                }
+                
+                // Draw points
+                if (beam && !isBeamDwelling) {
+                    ctx.fillStyle = '#00ff00'; // Green for normal beam-on positions
+                    ctx.beginPath();
+                    ctx.arc(px, py, 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                } else if (isBeamDwelling) {
+                    ctx.fillStyle = '#0066ff'; // Blue for beam-on dwelling (same position)
+                    ctx.beginPath();
+                    ctx.arc(px, py, 3, 0, 2 * Math.PI);
+                    ctx.fill();
+                }
+                
+                prevBeam = beam;
+            }
+        }
+
+        function createCharacterHTML(charCode) {
+            const binaryData = cdcRomBinary[charCode];
+            
+            let html = `
+                <div class="char-section">
+                    <div class="char-header">Character: '${charCode}'</div>
+                    <div style="display: flex; align-items: flex-start; gap: 20px;">
+                        <table style="border: 1px solid black; border-collapse: collapse; font-family: monospace; margin: 0;">
+                            <tr style="background: #f0f0f0; font-weight: bold;">
+                                <th style="border: 1px solid black; padding: 4px 8px; text-align: left;">T</th>
+                                <th style="border: 1px solid black; padding: 4px 8px; text-align: center; width: 30px;">V₁</th>
+                                <th style="border: 1px solid black; padding: 4px 8px; text-align: center; width: 30px;">V₂</th>
+                                <th style="border: 1px solid black; padding: 4px 8px; text-align: center; width: 30px;">H₁</th>
+                                <th style="border: 1px solid black; padding: 4px 8px; text-align: center; width: 30px;">H₂</th>
+                                <th style="border: 1px solid black; padding: 4px 8px; text-align: center; width: 30px;">U</th>
+                            </tr>
+            `;
+            
+            // Generate CDC ROM binary table matching the reference format
+            for (let i = 0; i < 22; i++) {
+                const binary = binaryData[i];
+                const V1 = (binary >> 4) & 1;
+                const V2 = (binary >> 3) & 1;
+                const H1 = (binary >> 2) & 1;
+                const H2 = (binary >> 1) & 1;
+                const U = binary & 1;
+                
+                // Generate timing label matching octal format from reference
+                const label = i === 0 ? '76' : (i-1).toString(8).padStart(2, '0');
+                
+                // More compact style with proper spacing
+                html += `
+                    <tr>
+                        <td style="border: 1px solid black; padding: 2px 6px; font-weight: bold; text-align: left;">${label}</td>
+                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${V1 ? 'X' : ' '}</td>
+                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${V2 ? 'X' : ' '}</td>
+                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${H1 ? 'X' : ' '}</td>
+                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${H2 ? 'X' : ' '}</td>
+                        <td style="border: 1px solid black; padding: 2px 6px; text-align: center; font-weight: bold;">${U ? 'X' : ' '}</td>
+                    </tr>
+                `;
+            }
+            
+            html += `</table>`;
+            
+            // Add canvas visualization alongside table
+            html += `
+                        <canvas id="canvas-${charCode}" width="160" height="160" class="grid-canvas"></canvas>
+                    </div>
+                </div>`;
+            return html;
+        }
+
+        // Main analysis
+        const output = document.getElementById('output');
+        let totalChars = 0;
+
+        // Sort characters for display
+        const charOrder = '0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/()=,.';
+        const sortedChars = Object.keys(vectorCharacterRomCDC6602).sort((a, b) => {
+            const indexA = charOrder.indexOf(a);
+            const indexB = charOrder.indexOf(b);
+            if (indexA === -1) return 1;
+            if (indexB === -1) return -1;
+            return indexA - indexB;
+        });
+
+        sortedChars.forEach(charCode => {
+            const strokes = vectorCharacterRomCDC6602[charCode];
+            
+            totalChars++;
+            
+            output.innerHTML += createCharacterHTML(charCode);
+            
+            // Draw the character after adding HTML
+            setTimeout(() => {
+                drawCharacterGrid(strokes, `canvas-${charCode}`);
+            }, 0);
+        });
+
+        // Update summary
+        document.getElementById('totalChars').textContent = totalChars;
+
+        // Add success status
+        output.innerHTML = `
+            <div style="background: #90EE90; padding: 20px; margin: 20px 0; border-radius: 5px; font-size: 18px; text-align: center;">
+                ✓ CDC 6602 CHARACTER ROM TABLES: Showing authentic binary format as referenced in documentation
+            </div>
+        ` + output.innerHTML;
+    </script>
+</body>
+</html>

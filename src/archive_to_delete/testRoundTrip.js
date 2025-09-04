@@ -1,7 +1,7 @@
 // Test round-trip conversion: Original Vector → Binary → Vector
 // Verifies that the CDC ROM binary format can accurately reproduce the original vector data
 
-import { vectorCharacterRomCDC6602 } from '../chargen/archive_to_delete/vectorRomCDC6602.js';
+import { vectorCharacterRomCDC6602 } from './vectorRomCDC6602.js';
 import { generateVectorRom, getCharacterVector } from '../chargen/cdcRomFunctions.js';
 
 /**

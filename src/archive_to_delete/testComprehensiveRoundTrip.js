@@ -2,7 +2,7 @@
 // Verifies that cdcRomBinary.js data correctly converts back to vectorRomCDC6602.js format
 
 import { cdcRomBinary } from '../chargen/cdcRomBinary.js';
-import { vectorCharacterRomCDC6602 } from '../chargen/archive_to_delete/vectorRomCDC6602.js';
+import { vectorCharacterRomCDC6602 } from './vectorRomCDC6602.js';
 
 /**
  * Decode CDC ROM binary format to vector coordinates using the exact CDC 6602 algorithm

@@ -2,7 +2,7 @@
 // This encoder correctly handles direction changes by comparing adjacent deltas
 // and inserting direction toggle commands when needed
 
-import { vectorCharacterRomCDC6602 } from './chargen/archive_to_delete/vectorRomCDC6602.js';
+import { vectorCharacterRomCDC6602 } from './vectorRomCDC6602.js';
 import fs from 'fs';
 
 /**

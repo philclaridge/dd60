@@ -30,4 +30,4 @@ This testbench will produce various formats and implementations:
 ## Documentation
 
 - See [CLAUDE.md](CLAUDE.md) for AI-specific development directions
-- See [dd60.md](doc/dd60.md) for detailed DD60 display specifications and research
+- See [dd60.md](dd60.md) for detailed DD60 display specifications and research

@@ -35,6 +35,11 @@ This testbench will produce:
 - No framework dependencies - vanilla JavaScript only
 - Code must be suitable for public scrutiny and collaboration
 
+## File Organization
+
+- Any Claude-generated temporary test files should be placed in `claude_temp_tests/` directory
+- Keep the root directory clean of temporary test files
+
 ## Development Notes
 
 As this is a new project, development patterns and build commands will be established as the codebase grows. Future updates to this file should include:
