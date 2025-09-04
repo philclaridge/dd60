@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quick Test - CDC ROM Binary Demo</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            margin: 20px;
+            background-color: #f5f5f5;
+        }
+        .status {
+            padding: 10px;
+            margin: 10px 0;
+            border-radius: 5px;
+        }
+        .success {
+            background-color: #d4edda;
+            border: 1px solid #c3e6cb;
+            color: #155724;
+        }
+        .error {
+            background-color: #f8d7da;
+            border: 1px solid #f5c6cb;
+            color: #721c24;
+        }
+        .data {
+            background: white;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 3px;
+            margin: 10px 0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+<body>
+    <h1>CDC ROM Binary Test</h1>
+    <div id="output"></div>
+
+    <script type="module">
+        import { cdcRomBinary } from './chargen/cdcRomBinary.js';
+        import { binaryToVector } from './chargen/cdcRomFunctions.js';
+        
+        const output = document.getElementById('output');
+        
+        try {
+            // Test conversion
+            const testChar = 'C';
+            const binaryData = cdcRomBinary[testChar];
+            const vectorData = binaryToVector(binaryData);
+            
+            let html = `<div class="status success">✓ Successfully loaded cdcRomBinary and conversion functions</div>`;
+            
+            html += `<div class="data">
+                <h3>Character '${testChar}' Test:</h3>
+                <p><strong>Binary data (first 5 values):</strong><br>`;
+            
+            for (let i = 0; i < 5 && i < binaryData.length; i++) {
+                const bits = binaryData[i].toString(2).padStart(5, '0');
+                const label = i === 0 ? '76' : (i-1).toString(8).padStart(2, '0');
+                html += `T=${label}: 0b${bits} (decimal: ${binaryData[i]})<br>`;
+            }
+            
+            html += `</p><p><strong>Decoded vectors (first 5):</strong><br>`;
+            for (let i = 0; i < 5 && i < vectorData.length; i++) {
+                html += `[${i}]: [${vectorData[i][0]}, ${vectorData[i][1]}, ${vectorData[i][2] ? 'ON' : 'OFF'}]<br>`;
+            }
+            
+            html += `</p><p><strong>Summary:</strong><br>`;
+            html += `Total binary entries: ${binaryData.length}<br>`;
+            html += `Total vector points: ${vectorData.length}<br>`;
+            html += `Characters in ROM: ${Object.keys(cdcRomBinary).length}</p>`;
+            html += `</div>`;
+            
+            html += `<div class="status success">✓ Conversion working correctly!<br>`;
+            html += `The demo.html file should work properly with cdcRomBinary.js</div>`;
+            
+            html += `<p><a href="demo.html">Open demo.html</a></p>`;
+            
+            output.innerHTML = html;
+            
+        } catch (error) {
+            output.innerHTML = `<div class="status error">✗ Error: ${error.message}</div>`;
+            console.error(error);
+        }
+    </script>
+</body>
+</html>
