@@ -35,6 +35,25 @@ This testbench will produce:
 - No framework dependencies - vanilla JavaScript only
 - Code must be suitable for public scrutiny and collaboration
 
+### JavaScript Coding Standards
+
+- **JSDoc Type Annotations**: Use comprehensive JSDoc comments with type information to enable IDE type checking without TypeScript
+- **Example JSDoc patterns**:
+  ```javascript
+  /**
+   * Convert vector data to triplet format
+   * @param {Array<[number, number, boolean]>} vectorData - Array of [x, y, beamOn] coordinates
+   * @param {Object} [options={}] - Optional configuration
+   * @param {number} [options.scale=1] - Scale factor for coordinates
+   * @returns {Array<[number, number, number]>} Array of [x, y, intensity] triplets
+   */
+  function vectorToTriplets(vectorData, options = {}) {
+    // Implementation
+  }
+  ```
+- **Type Definitions**: Define complex types in JSDoc for reuse across the codebase
+- **Parameter Validation**: Include parameter validation and null checks for robustness
+
 ## File Organization
 
 - Any Claude-generated temporary test files should be placed in `claude_temp_tests/` directory
@@ -111,7 +130,7 @@ npx playwright codegen                    # Generate test code interactively
 - **VERIFY** HTTP server is running with `curl -s -I http://localhost:8000/` before testing
 - **USE** HTTP-based tests like `tests/server-bitmap-test.spec.js` as templates
 
-**Important**: HTML files are now in root directory (`view_chargen_scaled.html`, `view_chargen_rom.html`) with imports to `./src/chargen/` modules. This resolves path resolution issues for both direct browser access and Playwright testing.
+**Important**: HTML files are in root directory (`scaled_viewer.html`, `rom_viewer.html`) with imports to `./src/` modules. This resolves path resolution issues for both direct browser access and Playwright testing.
 
 ### Playwright Capabilities for DD60
 

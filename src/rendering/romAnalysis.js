@@ -1,8 +1,7 @@
 // ROM analysis visualization functions
 // Extracted from inline JavaScript in view_chargen_rom.html
 
-import { cdcRomBinary } from '../cdcRomBinary.js';
-import { binaryToVector } from '../cdcRomFunctions.js';
+import { binaryToVector, getCharacterBinary } from '../cdcRomFunctions.js';
 
 /**
  * Draw character grid with vector strokes and analysis
@@ -158,7 +157,7 @@ function drawArrowheadForLength2Movement(ctx, ppx, ppy, px, py, scale) {
  * @returns {string} HTML table string
  */
 export function generateBinaryTable(char) {
-    const binaryData = cdcRomBinary[char];
+    const binaryData = getCharacterBinary(char);
     if (!binaryData) return '<p>Character not found</p>';
     
     let tableHTML = `
@@ -225,7 +224,8 @@ export function renderCharacterAnalysis(char, containerId, options = {}) {
         return;
     }
     
-    const vectorData = binaryToVector(cdcRomBinary[char]);
+    const binaryData = getCharacterBinary(char);
+    const vectorData = binaryToVector(binaryData);
     
     // Create canvas for grid
     const canvas = document.createElement('canvas');

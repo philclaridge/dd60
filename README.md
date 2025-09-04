@@ -14,6 +14,14 @@ The foundation of this project centers around:
 - **Vector Drawing Logic Timing**: Precise timing emulation for vector operations  
 - **Vector CRT Physics**: Understanding and modeling of vector CRT display characteristics
 
+## Live Demo
+
+🚀 **[View Live Demo](https://philclaridge.github.io/dd60/)**
+
+- **[ROM Viewer](https://philclaridge.github.io/dd60/rom_viewer.html)** - Analyze CDC 6602 character ROM binary data
+- **[Scaled Viewer](https://philclaridge.github.io/dd60/scaled_viewer.html)** - Interactive character rendering at multiple scales
+- **[Documentation](https://philclaridge.github.io/dd60/documentation.html)** - Complete project documentation
+
 ## Current Status
 
 This testbench has achieved:

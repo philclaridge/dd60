@@ -2,8 +2,7 @@
 // Converts CDC 6602 binary ROM data to triplet array format
 // Triplet format: [destination_x_abs, destination_y_abs, beam_intensity]
 
-import { cdcRomBinary } from './cdcRomBinary.js';
-import { binaryToVector, getCharacterBinary } from './cdcRomFunctions.js';
+import { binaryToVector, getCharacterBinary, getAllCharacters } from './cdcRomFunctions.js';
 
 /**
  * Convert vector data to triplet array format
@@ -29,7 +28,8 @@ export function vectorToTriplets(vectorData) {
 export function generateTripletRom() {
     const tripletRom = {};
     
-    for (const [char, binaryData] of Object.entries(cdcRomBinary)) {
+    for (const char of getAllCharacters()) {
+        const binaryData = getCharacterBinary(char);
         const vectorData = binaryToVector(binaryData);
         tripletRom[char] = vectorToTriplets(vectorData);
     }

@@ -4,6 +4,14 @@
 import { cdcRomBinary } from './cdcRomBinary.js';
 
 /**
+ * Get all available character keys from the ROM
+ * @returns {Array<string>} Array of available character keys
+ */
+export function getAllCharacters() {
+    return Object.keys(cdcRomBinary);
+}
+
+/**
  * Get binary ROM data for a character
  * @param {string} char - Character to retrieve
  * @returns {Array<number>} Array of binary control values
@@ -104,7 +112,8 @@ export function binaryToVector(binaryData) {
 export function generateVectorRom() {
     const vectorRom = {};
     
-    for (const [char, binaryData] of Object.entries(cdcRomBinary)) {
+    for (const char of getAllCharacters()) {
+        const binaryData = getCharacterBinary(char);
         vectorRom[char] = binaryToVector(binaryData);
     }
     
