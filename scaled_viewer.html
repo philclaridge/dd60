@@ -125,6 +125,22 @@
         <h3>Character Selection</h3>
         <div class="character-selector" id="characterSelector"></div>
         
+        <h3>Canvas Scale</h3>
+        <div style="margin: 10px 0;">
+            <label style="margin-right: 15px;">
+                <input type="radio" name="canvasScale" value="1" checked> Scale 1 (512×512)
+            </label>
+            <label style="margin-right: 15px;">
+                <input type="radio" name="canvasScale" value="2"> Scale 2 (1024×1024)
+            </label>
+            <label style="margin-right: 15px;">
+                <input type="radio" name="canvasScale" value="4"> Scale 4 (2048×2048)
+            </label>
+            <label>
+                <input type="radio" name="canvasScale" value="8"> Scale 8 (4096×4096)
+            </label>
+        </div>
+        
         <h3>Rendering Options</h3>
         <label>
             <input type="checkbox" id="showBeamOff" checked> Show Beam-Off Movements
@@ -155,20 +171,31 @@
         
         // State
         let selectedCharacter = 'A';
+        let canvasScale = 1;  // Default canvas scale
+        
+        // Canvas scale to resolution mapping
+        const CANVAS_RESOLUTIONS = {
+            1: 512,
+            2: 1024,
+            4: 2048,
+            8: 4096
+        };
         
         // Render CDC test pattern (always visible)
         function renderCDCTestPattern() {
             const container = document.getElementById('cdcTestPattern');
             container.innerHTML = '';
             
+            const resolution = CANVAS_RESOLUTIONS[canvasScale];
+            
             const panel = document.createElement('div');
             panel.className = 'render-panel';
             panel.innerHTML = `
-                <h3>CDC 6600 Display Test Pattern - Canvas Scale 1 (512×512 pixels)</h3>
+                <h3>CDC 6600 Display Test Pattern - Canvas Scale ${canvasScale} (${resolution}×${resolution} pixels)</h3>
                 <p style="font-size: 12px; color: #666; margin: -10px 0 15px 0;">
                     Full Parameter Set: 
                     <strong>C:1-4</strong> • 
-                    <strong>R:1</strong> • 
+                    <strong>R:${canvasScale}</strong> • 
                     <strong>D:1</strong> • 
                     <strong>B:8</strong> • 
                     <strong>A:0</strong>
@@ -177,10 +204,13 @@
                 </p>
             `;
             
-            // Create 512x512 test canvas with all characters
+            // Create test canvas - always render at 512x512 internally
+            // But display at scaled size using CSS
             const testCanvas = document.createElement('canvas');
             testCanvas.width = 512;
             testCanvas.height = 512;
+            testCanvas.style.width = resolution + 'px';
+            testCanvas.style.height = resolution + 'px';
             testCanvas.style.border = '1px solid #000';
             testCanvas.style.imageRendering = 'pixelated';
             const ctx = testCanvas.getContext('2d');
@@ -192,9 +222,9 @@
             const charOrder = '0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/()=,.';
             const availableChars = charOrder.split('').filter(c => tripletRom[c]);
             
-            // Layout calculations for Canvas Scale 1 (512x512)
-            // Character Scale 1: 10px per char = 50 chars/row, need ~46 chars total
-            // Character Scale 2: 20px per char = 25 chars/row 
+            // Layout calculations for 512x512 internal canvas
+            // Character Scale 1: 10px per char = 50 chars/row
+            // Character Scale 2: 20px per char = 25 chars/row  
             // Character Scale 4: 40px per char = 12 chars/row
             
             // Draw ALL Character Scale 1 characters in top section
@@ -364,7 +394,7 @@
                 <p style="font-size: 12px; color: #666; margin: 5px 0 10px 0;">
                     Current Parameters: 
                     <strong>Character Scale: 1/2/4</strong> • 
-                    <strong>Canvas Scale: 1 (512px)</strong> • 
+                    <strong>Canvas Scale: ${canvasScale} (${CANVAS_RESOLUTIONS[canvasScale]}px)</strong> • 
                     <strong>Device Scale: 1 (standard)</strong> • 
                     <strong>Bit Depth: 1 (monochrome)</strong> • 
                     <strong>Artifact Level: 0 (none)</strong>
@@ -476,6 +506,15 @@
         // Initialize option checkboxes
         document.querySelectorAll('.controls input[type="checkbox"]').forEach(checkbox => {
             checkbox.addEventListener('change', renderVisualization);
+        });
+        
+        // Initialize canvas scale radio buttons
+        document.querySelectorAll('input[name="canvasScale"]').forEach(radio => {
+            radio.addEventListener('change', (e) => {
+                canvasScale = parseInt(e.target.value);
+                renderCDCTestPattern();  // Re-render with new scale
+                renderVisualization();
+            });
         });
         
         // Initialize
