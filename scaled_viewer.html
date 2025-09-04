@@ -204,11 +204,10 @@
                 </p>
             `;
             
-            // Create test canvas - always render at 512x512 internally
-            // But display at scaled size using CSS
+            // Create test canvas at actual resolution
             const testCanvas = document.createElement('canvas');
-            testCanvas.width = 512;
-            testCanvas.height = 512;
+            testCanvas.width = resolution;
+            testCanvas.height = resolution;
             testCanvas.style.width = resolution + 'px';
             testCanvas.style.height = resolution + 'px';
             testCanvas.style.border = '1px solid #000';
@@ -217,7 +216,10 @@
             
             // Fill background
             ctx.fillStyle = '#000';
-            ctx.fillRect(0, 0, 512, 512);
+            ctx.fillRect(0, 0, resolution, resolution);
+            
+            // Apply canvas scale to all operations
+            ctx.scale(canvasScale, canvasScale);
             
             const charOrder = '0123456789 ABCDEFGHIJKLMNOPQRSTUVWXYZ+-*/()=,.';
             const availableChars = charOrder.split('').filter(c => tripletRom[c]);
@@ -362,7 +364,9 @@
         function renderComparison(container) {
             container.innerHTML = '<h3>Vector vs CDC Scaled Bitmap Comparison</h3>';
             
-            const comparisonScale = 28;
+            // Base comparison scale, adjusted for canvas scale
+            const baseComparisonScale = 28;
+            const comparisonScale = baseComparisonScale * canvasScale;
             
             // First row: Vector rendering
             const vectorSection = document.createElement('div');
@@ -370,19 +374,26 @@
             
             const vectorPanel = document.createElement('div');
             const vectorCanvas = document.createElement('canvas');
-            vectorCanvas.width = 8 * comparisonScale;
-            vectorCanvas.height = 8 * comparisonScale;
+            const vectorCanvasSize = 8 * baseComparisonScale * canvasScale;
+            vectorCanvas.width = vectorCanvasSize;
+            vectorCanvas.height = vectorCanvasSize;
+            vectorCanvas.style.width = (8 * baseComparisonScale) + 'px';
+            vectorCanvas.style.height = (8 * baseComparisonScale) + 'px';
+            vectorCanvas.style.imageRendering = 'auto';
             const vectorCtx = vectorCanvas.getContext('2d');
             
             const options = getRenderingOptions();
             const triplets = tripletRom[selectedCharacter];
             
-            if (options.showGrid) {
-                drawGrid(vectorCtx, 8, comparisonScale);
-            }
-            renderTriplets(vectorCtx, triplets, comparisonScale, options);
+            // Apply canvas scale to the context
+            vectorCtx.scale(canvasScale, canvasScale);
             
-            vectorPanel.innerHTML = '<h4>Vector Rendering (28px scale)</h4>';
+            if (options.showGrid) {
+                drawGrid(vectorCtx, 8, baseComparisonScale);
+            }
+            renderTriplets(vectorCtx, triplets, baseComparisonScale, options);
+            
+            vectorPanel.innerHTML = `<h4>Vector Rendering (${baseComparisonScale}px scale at ${canvasScale}× canvas)</h4>`;
             vectorPanel.appendChild(vectorCanvas);
             vectorSection.appendChild(vectorPanel);
             container.appendChild(vectorSection);
@@ -413,14 +424,20 @@
             characterScales.forEach(characterScale => {
                 const itemWrapper = document.createElement('div');
                 
-                // True size canvas
+                // True size canvas (affected by canvas scale)
                 const trueCanvas = document.createElement('canvas');
                 const size = 7 * characterScale;  // CDC native character size
-                trueCanvas.width = size;
-                trueCanvas.height = size;
+                const canvasPixelSize = size * canvasScale;
+                trueCanvas.width = canvasPixelSize;
+                trueCanvas.height = canvasPixelSize;
+                trueCanvas.style.width = size + 'px';
+                trueCanvas.style.height = size + 'px';
                 trueCanvas.style.border = '1px solid #999';
                 trueCanvas.style.imageRendering = 'pixelated';
                 const trueCtx = trueCanvas.getContext('2d');
+                
+                // Apply canvas scale
+                trueCtx.scale(canvasScale, canvasScale);
                 
                 renderCDCScaledBitmap(trueCtx, tripletRom[exampleChar], characterScale, {
                     pixelColor: '#000000',
@@ -428,17 +445,20 @@
                     showPixelGrid: false
                 });
                 
-                // 8x magnified canvas
+                // 8x magnified canvas (also affected by canvas scale)
                 const magCanvas = document.createElement('canvas');
-                magCanvas.width = size * 8;
-                magCanvas.height = size * 8;
+                const magCanvasSize = size * 8 * canvasScale;
+                magCanvas.width = magCanvasSize;
+                magCanvas.height = magCanvasSize;
+                magCanvas.style.width = (size * 8) + 'px';
+                magCanvas.style.height = (size * 8) + 'px';
                 magCanvas.style.border = '1px solid #999';
                 magCanvas.style.imageRendering = 'pixelated';
                 const magCtx = magCanvas.getContext('2d');
                 
-                // Scale up the context and render
+                // Apply both canvas scale and magnification
                 magCtx.save();
-                magCtx.scale(8, 8);
+                magCtx.scale(8 * canvasScale, 8 * canvasScale);
                 renderCDCScaledBitmap(magCtx, tripletRom[exampleChar], characterScale, {
                     pixelColor: '#000000',
                     backgroundColor: '#ffffff',
